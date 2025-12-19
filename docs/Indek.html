@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+      <meta name="google-site-verification" content="kOA1mXmdxdQ6UPbH_vuFs4P2czsbeol8Ku9ifHSo5kY">
+      <meta charset="UTF-8">
+      <me ="viewport" content="width=device-width, initial-scale=1.0""
+      <title>Direktori Saluran WhatsApp</title>
+</head>
+<style>
+*{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif;}
+body{margin:0;background:#f2f4f8;}
+header{background:#25D366;color:white;padding:20px;text-align:center;}
+header h1{margin:0;font-size:26px;}
+header p{margin-top:6px;opacity:0.9;}
+.container{max-width:900px;margin:20px auto;padding:15px;}
+.search-box{margin-bottom:20px;}
+.search-box input{width:100%;padding:12px;font-size:16px;border-radius:8px;border:1px solid #ccc;}
+.channel-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:15px;}
+.card{background:white;border-radius:12px;padding:15px;box-shadow:0 4px 10px rgba(0,0,0,0.08);text-align:center;}
+.card h3{margin:0 0 8px;}
+.card p{font-size:14px;color:#555;}
+.card a{display:inline-block;margin-top:10px;text-decoration:none;background:#25D366;color:white;padding:8px 12px;border-radius:6px;font-size:14px;}
+footer{text-align:center;padding:15px;font-size:13px;color:#777;}
+/* POPUP STYLING */
+.popup-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:flex;justify-content:center;align-items:center;z-index:9999;}
+.popup-box{background:#fff;padding:25px;border-radius:14px;text-align:center;max-width:400px;width:90%;position:relative;}
+.popup-box span{position:absolute;top:10px;right:15px;font-size:22px;cursor:pointer;}
+.popup-box a{display:block;margin:10px 0;padding:10px;border-radius:8px;text-decoration:none;font-weight:bold;}
+.popup-box a.saluran{background:#25D366;color:#fff;}
+.popup-box a.donasi{background:#FF6B6B;color:#fff;}
+</style>
+</head>
+<body>
+
+<!-- POPUP RAMAIKAN SALURAN -->
+<div id="welcomePopup" class="popup-overlay">
+  <div class="popup-box">
+    <span onclick="closeWelcome()">✕</span>
+    <h2>Tolong bre bantu ramaikan saluran ini</h2>
+    <a href="https://whatsapp.com/channel/0029VbBS24J3gvWYXNUrRs45" target="_blank" class="saluran">Saluran</a>
+    <a href="https://saweria.co/Animevora" target="_blank" class="donasi">Donasi</a>
+  </div>
+</div>
+
+<header>
+  <h1>Direktori Saluran WhatsApp</h1>
+  <p>Website publik untuk mencari & membagikan Saluran WhatsApp Indonesia</p>
+</header>
+
+<div class="container">
+  <section style="background:#fff;padding:15px;border-radius:12px;margin-bottom:20px;box-shadow:0 4px 10px rgba(0,0,0,0.08)">
+    <h2>Submit Saluran WhatsApp</h2>
+    <p>Saluran yang kamu submit akan LANGSUNG tampil untuk publik.</p>
+    <input type="text" id="name" placeholder="Nama Saluran WhatsApp" style="width:100%;padding:10px;margin-bottom:8px" />
+    <input type="text" id="desc" placeholder="Deskripsi singkat saluran" style="width:100%;padding:10px;margin-bottom:8px" />
+    <input type="text" id="link" placeholder="Link Saluran WhatsApp" style="width:100%;padding:10px;margin-bottom:8px" />
+    <button onclick="addChannel()" style="padding:10px 15px;background:#25D366;color:#fff;border:none;border-radius:6px">Submit Saluran</button>
+  </section>
+
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Cari berdasarkan nama atau deskripsi saluran" />
+  </div>
+
+  <div class="channel-list" id="channelList"></div>
+</div>
+
+<footer>© 2025 Direktori Saluran WhatsApp</footer>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyA_0jv1f329SO8WOSSaasi5xOBIBjIvpIM",
+  authDomain: "direktoriwa.firebaseapp.com",
+  databaseURL: "https://direktoriwa-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "direktoriwa",
+  storageBucket: "direktoriwa.firebasestorage.app",
+  messagingSenderId: "1001709898104",
+  appId: "1:1001709898104:web:8cccacd7a597883da1a08d",
+  measurementId: "G-MN6H4XRX8W"
+};
+const app = firebase.initializeApp(firebaseConfig);
+const analytics = firebase.analytics();
+const db = firebase.database();
+
+const channelList = document.getElementById('channelList');
+const searchInput = document.getElementById('searchInput');
+
+// Submit saluran
+function addChannel(){
+  const name = document.getElementById('name').value.trim();
+  const desc = document.getElementById('desc').value.trim();
+  const link = document.getElementById('link').value.trim();
+
+  if(!name||!desc||!link){ alert('Semua field wajib diisi'); return;}
+  if(!link.includes('whatsapp.com/channel')){ alert('Link WA harus valid'); return;}
+
+  db.ref('channels').push({name, desc, link});
+
+  document.getElementById('name').value='';
+  document.getElementById('desc').value='';
+  document.getElementById('link').value='';
+}
+
+// Tampilkan semua saluran dari Firebase
+db.ref('channels').on('value', snapshot => {
+  channelList.innerHTML = '';
+  snapshot.forEach(snap => {
+    const data = snap.val();
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.innerHTML = `
+      <h3>${data.name}</h3>
+      <p>${data.desc}</p>
+      <a href="${data.link}" target="_blank">Masuk Saluran</a>
+    `;
+    channelList.appendChild(div);
+  });
+});
+
+// Filter/search
+searchInput.addEventListener('keyup', function(){
+  const value = this.value.toLowerCase();
+  document.querySelectorAll('.card').forEach(card=>{
+    card.style.display = card.innerText.toLowerCase().includes(value)?'block':'none';
+  });
+});
+
+// Tutup popup
+function closeWelcome(){ document.getElementById('welcomePopup').style.display='none'; }
+</script>
+
+</body>
+</html>
